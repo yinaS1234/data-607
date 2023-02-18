@@ -1,0 +1,77 @@
+---
+title: "DATA607 Assignment 1"
+author: "Yina Qiao"
+date: "2023-02-03"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+RAPTOR, which stands for Robust Algorithm (using) Player Tracking (and) On/Off Ratings, is FiveThirtyEight’s new NBA statistic. RAPTOR has the following two advantages:
+
+First,create a publicly available statistic that takes advantage of modern NBA data, specifically player tracking and play-by-play data that isn’t available in traditional box scores.
+
+Second, and relatedly, a statistic that better reflects how modern NBA teams actually evaluate players.
+
+Introducing RAPTOR, Our New Metric For The Modern NBA:https://fivethirtyeight.com/features/introducing-raptor-our-new-metric-for-the-modern-nba/
+
+## Installl Packages
+
+```{r }
+library('tidyverse')
+```
+
+## Loading Data and Creating Dataframe
+```{r}
+library(readr)
+df <- read_csv("Downloads/nba-raptor/modern_RAPTOR_by_player.csv",show_col_types = FALSE)
+head(df)
+```
+
+## Summary Statistics
+Get an overview of the data type, min, median, max, mean of each variables.
+```{r}
+summary(df)
+str(df)
+```
+
+## Data subset-Filter
+I am only interested in the the most recent year. In addition, we need to have enough data so filter in  players who play at least 1000 mp and 2000 poss. 
+To carve out useful data, creating a subset and only include columns of 
+'player_name','mp','poss','raptor_total'
+```{r}
+df_subset <- subset(df,season==2022 & mp>=1000 & poss>=2000 )
+df_subset2 <- df_subset[,c('player_name','mp','poss','raptor_total')]
+head(df_subset2)
+```
+
+## Data Cleaning and Manipulation
+check distinct entries in all columns
+```{r}
+sapply(df_subset2, function(x) length(unique(x)))
+```
+
+Remove missing and duplicate data
+```{r}
+df_subset3<-remove_missing(df_subset2, na.rm = FALSE, vars = names(df_subset2), name = "", finite = FALSE)
+duplicated(df_subset3)
+```
+
+Sort Data by 'raptor_total' DESC so we can easily spot the top 5
+```{r}
+df_sort <- df_subset3[order(-df_subset3$raptor_total),]
+head(df_sort)
+```
+
+
+## Conclusion
+
+RAPTOR thinks ball-dominant players such as Steph Curry are phenomenally good.It can have a love-hate relationship with centers, who are sometimes overvalued in other statistical systems. But it appreciates modern centers such as Nikola Jokić and Joel Embiid, as well as defensive stalwarts like Rudy Gobert.
+
+Next step, I recommend to join data set with RAPTOR team data on historical level and latest level to further understanding RAPTOR score variable relationship and build a model to predict team success. 
+
