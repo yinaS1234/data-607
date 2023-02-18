@@ -1,0 +1,99 @@
+---
+title: "data 607 lab3"
+author: "Yina Qiao"
+date: "2023-02-13"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+## 1
+```{r}
+df.college.majors = read.csv( url("https://raw.githubusercontent.com/fivethirtyeight/data/master/college-majors/majors-list.csv"))
+
+vec.majors = df.college.majors$Major[grep("DATA|STATISTICS", df.college.majors$Major)] 
+print(vec.majors)
+```
+
+## 2
+```{r}
+vec.text = c('[1] "bell pepper"  "bilberry"     "blackberry"   "blood orange"
+[5] "blueberry"    "cantaloupe"   "chili pepper" "cloudberry"  
+[9] "elderberry"   "lime"         "lychee"       "mulberry"    
+[13] "olive"        "salal berry"')
+
+vec.text.char = gsub("(\\n\\[\\d+\\])|(^\\[\\d+\\])", "", vec.text)
+vec.text.char = strsplit(vec.text.char, '\\"')
+vec.text.char = unlist(vec.text.char)
+vec.text.char = vec.text.char[grep("[a-z]", vec.text.char)]
+print(vec.text.char)
+```
+
+## 3
+
+1> (.)\1\1. This will detect any three consecutive charactes in string format that has the same character.
+
+
+```{r}
+str_detect("AAA", "(.)\1\1")
+```
+
+```{r}
+str_detect("A\1\1", "(.)\1\1")
+```
+
+2> "(.)(.)\\2\\1". This matches any 4 consecutive characters in a string where
+the last 2 are the same as the first 2 characters in reverse order.
+```{r}
+str_detect("eppe","(.)(.)\\2\\1")
+```
+
+
+3> (..)\1
+Regular expression not represented in string format that has two characters repeated twice in the same order
+```{r}
+str_detect('nana', '(..)\1')
+```
+
+4> "(.).\\1.\\1"
+This will match any five consecutive characters where character 1, 3, and 5 are the same
+```{r}
+str_detect('abana',"(.).\\1.\\1")
+```
+
+
+5> "(.)(.)(.).*\\3\\2\\1"
+match any string that contains at least six characters with the last 3 characters as the same as the first 3 characters in reverse order
+
+```{r}
+str_detect("123newyorkcity;321","(.)(.)(.).*\\3\\2\\1")
+```
+
+
+
+## 4
+Construct regular expressions to match words that:
+1>Start and end with the same character.
+```{r}
+#"^(.).*\\1$"
+```
+
+2>Contain a repeated pair of letters (e.g. "church" contains "ch" repeated twice.)
+```{r}
+# "(..).*\\1"
+```
+
+3>Contain one letter repeated in at least three places (e.g. "eleven" contains three "e"s.)
+```{r}
+# "(.).*\\1.*\\1"
+```
+
+
