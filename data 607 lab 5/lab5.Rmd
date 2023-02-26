@@ -1,0 +1,97 @@
+---
+title: "Data 607 lab 5"
+author: "Yina Qiao"
+date: "2023-02-26"
+output: html_document
+---
+
+
+## Introduction
+This assignment will import uncleaned data from a csv. file. My task is to tidy and transform data as described below.
+(1) Read the information from a .CSV file into R, and use tidyr and dplyr as needed to tidy and transform the data.
+(2) Perform analysis to compare the arrival delays for the two airlines
+
+
+## Install and load pakages
+```{r}
+library(tidyverse)
+
+```
+
+## Load dataset
+```{r}
+url = r"(https://raw.githubusercontent.com/yinaS1234/data-607/main/data%20607%20lab%205/lab5data.csv)"
+suppressMessages(
+df <- read_csv(url, skip_empty_rows = TRUE, show_col_types = FALSE)[-3,] 
+)
+names(df)[1:2] <- c("Airline", "Status")
+df
+```
+
+## Clean and tidy the data
+*fixing NA
+transform data, rename*
+
+```{r}
+for(x in seq(from=2, to=nrow(df), by=2))
+{
+  df[x, 1] = df[x-1, 1]
+}
+```
+
+```{r}
+library(tidyr)
+
+df_unpivot = df %>%
+  gather(key="City", value="Count", c("Los Angeles","Phoenix", "San Diego", "San Francisco", "Seattle"))
+df_unpivot
+```
+
+```{r}
+library(dplyr)
+
+df_unpivot_2 = df_unpivot %>%
+  spread(key="Status", value="Count")
+
+df_unpivot_2 = df_unpivot_2 %>%
+  rename(on_time = `on time`)
+
+```
+
+## Data Analysis
+
+### On Time Percentage By City by airline
+```{r}
+df_unpivot_2 = df_unpivot_2 %>%
+  mutate(otp = on_time/(on_time + delayed)) %>%
+  arrange(desc(otp))
+
+df_unpivot_2
+```
+
+### Overall On Time Percentage By Airline.
+* we see that AM West Outperform ALASKA overall.  However,could the result skewed due to more flights in certain city? 
+```{r}
+df_unpivot_2 %>%
+  select(Airline, delayed, on_time) %>%
+  group_by(Airline) %>%
+  summarise(delayed = sum(delayed), on_time = sum(on_time), otp = sum(on_time) / (sum(on_time) + sum(delayed))) %>%
+  arrange(desc(otp))
+```
+
+* it seems like AM WEST has more flights in Phoenix, so lets compute the OTP without phoenix.*
+```{r}
+df_unpivot_2 %>%
+  filter(City != "Phoenix") %>%
+  select(Airline, delayed, on_time) %>%
+  group_by(Airline) %>%
+  summarise(delay = sum(delayed), on_time = sum(on_time), otp = sum(on_time) / (sum(on_time) + sum(delayed))) %>%
+  arrange(desc(otp))
+```
+
+## Conclusion
+
+Based on the data provided,ALASKA consistently outperforms AM WEST. For flying to Phoenix specifically, I would recommend AM WEST as the on time performance is on par with ALASKA and have more flights available.
+
+
+
