@@ -1,0 +1,226 @@
+---
+title: "data 607 project 2"
+author: "Yina Qiao"
+date: "2023-03-04"
+output:
+  html_document:
+    df_print: paged
+---
+
+## Introduction
+The goal of this assignment is to practice in preparing different datasets for downstream analysis work
+
+## DataSet 1 NYC MTA Subway Ridership from 2013
+
+## load packages
+```{r load packages, message=FALSE}
+# Load required libraries
+library(tidyverse)
+```
+
+## load data
+```{r}
+url <- 'https://raw.githubusercontent.com/yinaS1234/data-607/main/project%202/Annual20Subway20Ridership.csv'
+
+dfMTA <- read.csv(file = url)
+
+glimpse(dfMTA)
+```
+## Tidy Data
+```{r}
+# changing the column names
+new_col_name <- c('Station', 2013, 2014, 2015, 2016, 2017, 2018, '2017 - 2018 Net Change', 
+                   '2017 - 2018 % Change', '2018 Rank')
+colnames(dfMTA) <- new_col_name
+
+# finding the rows where the boroughs are entered
+borough <- c('The Bronx', 'Brooklyn', 'Manhattan', 'Queens')
+
+rowvalues <- c()
+
+for(i in 1:length(borough)){
+  rowvalues[i] <- rownames(dfMTA[which(dfMTA$'2013' == borough[i]),])
+}
+rowvalues
+```
+
+```{r}
+#now that we now where the boroughs dataset begins and ends, we can capture the 
+# data accordingly
+dfBronx <- dfMTA[2:69,]
+dfBronx['Borough'] <- borough[1]
+  
+dfBrooklyn <- dfMTA[71:227,]
+dfBrooklyn['Borough'] <- borough[2]
+
+dfManhattan <- dfMTA[229:349,]
+dfManhattan['Borough'] <- borough[3]
+
+dfQueens <- dfMTA[351:dim(dfMTA)[1],]
+dfQueens['Borough'] <- borough[4]
+
+# combined all sub datasets
+dfMTA2 <- rbind(dfBronx, dfBrooklyn, dfManhattan, dfQueens)
+
+# changed the columns from character to integer and removing commas
+dfMTA2 <- dfMTA2 %>%
+  mutate('2013' = as.integer(str_remove_all(dfMTA2$'2013', ',')),
+         '2014' = as.integer(str_remove_all(dfMTA2$'2014', ',')),
+         '2015' = as.integer(str_remove_all(dfMTA2$'2015', ',')),
+         '2016' = as.integer(str_remove_all(dfMTA2$'2016', ',')),
+         '2017' = as.integer(str_remove_all(dfMTA2$'2017', ',')),
+         '2018' = as.integer(str_remove_all(dfMTA2$'2018', ',')),
+         '2017 - 2018 Net Change' = as.integer(str_remove_all(dfMTA2$'2017 - 2018 Net Change', ',')),
+         '2017 - 2018 % Change' = as.numeric(str_remove_all(dfMTA2$'2017 - 2018 % Change', '%')),
+         '2018 Rank' = as.integer(dfMTA2$'2018 Rank')) %>%
+  select(Borough, colnames(dfMTA2))
+```
+
+## Data Analysis
+
+Let's look at the data by boroughs. 
+
+```{r}
+
+# subset of the data we want to look at
+colnames2 <- c('Borough', 2013, 2014, 2015, 2016, 2017, 2018)
+  
+dfMTA3 <- dfMTA2 %>%
+  select(colnames2)
+
+aggMTA <- dfMTA3 %>%
+  pivot_longer(!Borough, names_to = 'Year', values_to = 'Ridership') %>%
+  group_by(Borough, Year) %>%
+  summarize(Avg_Ridership = mean(Ridership, na.rm = TRUE))
+
+ggplot(data = aggMTA) +
+  geom_bar(mapping = aes(x = Year, y = Avg_Ridership, fill = Borough), stat = 'identity') +
+  facet_grid(~ Borough) +
+  theme(axis.text.x = element_text(angle = 70, hjust = 1)) +
+  labs(title = 'Average Riderhip from 2013 - 2018 by Borough')
+
+```
+
+## Conclusion for Dataset 1
+There is only minor change for ridership by boroughs from 2013 - 2018. The Queens borough has the most riders among all other boroughs.
+
+
+## DataSet 2 MoviesOnStreamingPlatforms
+
+I am curious to see which platform has better movies. 
+
+##load data
+
+```{r}
+url <- 'https://raw.githubusercontent.com/yinaS1234/data-607/main/project%202/MoviesOnStreamingPlatforms.csv'
+
+dfMovies <- read.csv(file = url)
+glimpse(dfMovies)
+```
+
+
+## Tidy Data and data manipulation
+```{r}
+# Cleaning
+dfMovies <- dfMovies[,-1] %>%
+  rename(Rotten_Tomatoes = Rotten.Tomatoes, Prime_Video = Prime.Video, Disney = Disney.) %>%
+  mutate(Rotten_Tomatoes = as.integer(str_remove(Rotten_Tomatoes, '%')))
+
+# Transforming - we need to identify the platforms where the movies can be streamed.
+# I created a subset for each platform and then combined them after
+dfNetflix <- dfMovies %>%
+  filter(Netflix == 1) %>%
+  select(Title, IMDb, Rotten_Tomatoes)
+dfNetflix['Platform'] <- 'Netflix'
+
+dfHulu <- dfMovies %>%
+  filter(Hulu == 1) %>%
+  select(Title, IMDb, Rotten_Tomatoes)
+dfHulu['Platform'] <- 'Hulu'
+
+dfPrime_Video <- dfMovies %>%
+  filter(Prime_Video == 1) %>%
+  select(Title, IMDb, Rotten_Tomatoes)
+dfPrime_Video['Platform'] <- 'Prime_Video'
+
+dfDisney <- dfMovies %>%
+  filter(Disney == 1) %>%
+  select(Title, IMDb, Rotten_Tomatoes)
+dfDisney['Platform'] <- 'Disney'
+
+dfMovies2 <- rbind(dfNetflix, dfHulu, dfPrime_Video, dfDisney)
+
+
+```
+
+## Data Analysis
+
+```{r}
+ggplot(data = dfMovies2, aes(x = Platform, y = IMDb, fill = Platform)) +
+  geom_boxplot() + 
+  labs(title = 'IMDb Rating by Platform') 
+
+
+ggplot(data = dfMovies2, aes(x = Platform, y = Rotten_Tomatoes, fill = Platform)) +
+  geom_boxplot() + 
+  labs(title = 'Rotten Tomoatoes Rating by Platform') 
+```
+
+## Conclusion on Dataset 2
+
+It seems like Rotton tomatoes rating has many NA and not enough data to support finding, where IMDb rating has less NA and therefore is a better indicator. Recommend to compare platforms based on IMDb rating, Disney has highest IMDb, while Prime-Video has lowest IMDb. 
+
+
+## DataSet3 School Diversity
+
+I am curious to see the difference racial average per school.  
+
+##load data
+```{r}
+url <- 'https://raw.githubusercontent.com/yinaS1234/data-607/main/project%202/School_Diversity.csv'
+
+dfSchool <- read.csv(file = url)
+str(dfSchool)
+```
+
+## Data Cleaning and Manipulation
+
+```{r}
+dfSchool2 <- dfSchool %>%
+  mutate_all(~replace(., is.na(.), 0)) %>%
+  filter(Total > 100) %>%
+  mutate(Asian = Asian / 100,
+         Black = Black / 100,
+         Hispanic = Hispanic / 100,
+         White = White / 100,
+         Multi = Multi / 100,
+         ) %>%
+  group_by(ST) %>%
+  summarize(Asian = mean(Asian),
+            Black = mean(Black),
+            Hispanic = mean(Hispanic),
+            White = mean(White),
+            Multi = mean(Multi)) %>%
+  pivot_longer(!ST, names_to = 'Ethnicity', values_to = 'Ratio')
+
+```
+```
+
+## Data Analysis
+
+The above data shows the ratio average across school.  Let's plot it for better analysis. 
+
+```{r}
+ggplot(data = dfSchool2, aes(x = Ethnicity, y = Ratio, fill = Ethnicity)) +
+  geom_boxplot() +
+  labs(title = 'Ethnicity Ratio Distribution in Schools')
+```
+
+
+## Conclusion Dataset 3 
+From our analysis, we see that the overall the spread of White student ratio is the highest by a wide margin, where the other race ratios are more similars.  
+
+
+
+
+
