@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<favorite_books>
+
+	<book>
+		<title>R for Data Science</title>
+		<authors first="Garret Grolemund" second="Hadley Wickham"/>
+		<publisher>O'Reilly</publisher>
+		<publication_year>2017</publication_year>
+	</book>
+
+	<book>
+		<title>Text Mining with R: A Tidy Approach</title>
+		<authors first="Julia Silge" second="David Robinson"/>
+		<publisher>O'Reilly</publisher>
+		<publication_year>2017</publication_year>
+	</book>
+
+	<book>
+		<title>Data Science for Business</title>
+		<authors first="Tom Fawcett" second="Foster Provost"/>
+		<publisher>O'Reilly</publisher>
+		<publication_year>2013</publication_year>
+	</book>
+
+</favorite_books>
