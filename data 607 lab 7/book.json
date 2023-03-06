@@ -1,0 +1,31 @@
+{"favorite_books" :[
+	{
+		"title" 			: "R for Data Science",
+		"authors" : {
+			"first"  		: "Garret Grolemund",
+			"second" 		: "Hadley Wickham"
+			},
+		"publisher" 		: "O'Reilly",
+		"publication_year"  : 2017
+	},
+	{
+		"title" 			: "Text Mining with R: A Tidy Approach",
+		"authors" : {
+			"first"  		: "Julia Silge",
+			"second" 		: "David Robinson"
+			},
+		"publisher" 		: "O'Reilly",
+		"publication_year"  : 2017
+	},
+	{
+		"title" 			: "Data Science for Business",
+		"authors" : {
+			"first"  		: "Tom Fawcett",
+			"second" 		: "Foster Provost"
+			},
+		"publisher" 		: "O'Reilly",
+		"publication_year"  : 2013
+	}
+] 
+
+}
