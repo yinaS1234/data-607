@@ -1,0 +1,111 @@
+---
+title: "DATA607 lab 7"
+author: "Yina Qiao"
+date: "03/11/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Pick three of your favorite books on one of your favorite subjects. At least one of the books should have more
+than one author. For each book, include the title, authors, and two or three other attributes that you find
+interesting. Take the information that you’ve selected about these three books, and separately create three files which
+store the book’s information in HTML (using an html table), XML, and JSON formats (e.g. “books.html”, “books.xml”, and “books.json”).
+
+## Libraries
+
+```{r}
+library(xml2)
+library(RJSONIO)
+library(tidyverse)
+library(rvest)
+```
+
+## HTML Parsing
+
+Since the data is stored in a table in the HTML file, we can read the table into a data frame using the xml2 library.
+Once, the data frame is created, we can make edits using the tidyr library.
+
+```{r}
+#load data
+HTML_df <- as.data.frame(read_html('https://raw.githubusercontent.com/yinaS1234/data-607/main/data%20607%20lab%207/book.html') 
+                         %>% html_table(fill = TRUE))
+#separate the authors into two columns
+HTML_df <- HTML_df %>%
+  mutate(Author1 = str_remove(str_match(Author.s., '.*,'),','),
+         Author2 = str_remove(str_match(Author.s., ',.*'),', ')) %>%
+  select(Title, Author1, Author2, Publisher, Publication.Year)
+HTML_df
+```
+
+## XML Parsing
+
+The XML file requires more attention to it as there are two authors for each book, and are saved as attributes in the authors element.
+
+My approach is to search for elements and attributes separately and combine them together.
+
+```{r}
+#load data
+XML_doc <- read_xml('https://raw.githubusercontent.com/yinaS1234/data-607/main/data%20607%20lab%207/book.xml')
+#search xml file for title elements
+XML_title <- XML_doc %>%
+  xml_find_all('//title') %>%
+  xml_text() %>%
+  trimws()
+#search xml file for the first attribute in the authors element
+XML_author1 <- XML_doc %>%
+  xml_find_all('//authors') %>% 
+  xml_attr('first')
+#search xml file for the second attribute in the authors element
+XML_author2 <- XML_doc %>%
+  xml_find_all('//authors') %>% 
+  xml_attr('second')
+#search xml file for publisher element
+XML_publisher <- XML_doc %>%
+  xml_find_all('//publisher') %>%
+  xml_text() %>%
+  trimws()
+#search xml file for publication year element
+XML_publication_year <- XML_doc %>%
+  xml_find_all('//publication_year') %>%
+  xml_text() %>%
+  trimws()
+#combining all the vectors into a dataframe
+XML_df <-  data.frame(cbind(Title=XML_title, Author1=XML_author1, Author2=XML_author2,
+                 Publisher=XML_publisher, Publication_year=XML_publication_year))
+XML_df
+```
+
+## JSON Parsing
+
+My approach is similar to parsing the XML file, that is to save values separately by their keys, then to combine together into a dataframe.
+
+```{r}
+#load data
+jbooks <- fromJSON(content = 'https://raw.githubusercontent.com/yinaS1234/data-607/main/data%20607%20lab%207/book.json')
+#unlisting the data to search by their keys
+jvec <- unlist(jbooks, recursive = TRUE, use.names = TRUE)
+#search for title values
+js_title <- data.frame(jvec[str_detect(names(jvec), 'title')])
+#search for first values
+js_author1 <- data.frame(jvec[str_detect(names(jvec), 'first')])
+#search for second values
+js_author2 <- data.frame(jvec[str_detect(names(jvec), 'second')])
+#search for publisher values
+js_publisher <- data.frame(jvec[str_detect(names(jvec), 'publisher')])
+#search for publication_year values
+js_publication_year <- data.frame(jvec[str_detect(names(jvec), 'publication_year')])
+#combine the data
+js_df <- cbind(js_title, js_author1, js_author2, js_publisher, js_publication_year)
+colnames(js_df) <- c('Title', 'Author1', 'Author2', 'Publisher', 'Publication_Year') 
+js_df
+```
+
+## Conclusion
+
+The data was stored differently in each file and my approach to parse the data changed accordingly.  However,the final data frames are identical.
+
